@@ -205,7 +205,7 @@ input[type="submit"]:hover, input[type="submit"]:focus{
         </a>
       </div>
       <div class="social">
-        <a href="https://github.com/Slam-Team/slam-mirrorbot"><i class="fab fa-github"></i></a>
+        <a href="https://github.com/SlamDevs/slam-mirrorbot"><i class="fab fa-github"></i></a>
         <a href="https://t.me/SlamMirrorUpdates"><i class="fab fa-telegram"></i></a>
       </div>
     </header>
@@ -530,7 +530,7 @@ section span{
         </a>
       </div>
       <div class="social">
-        <a href="https://github.com/Slam-Team/slam-mirrorbot"><i class="fab fa-github"></i></a>
+        <a href="https://github.com/SlamDevs/slam-mirrorbot"><i class="fab fa-github"></i></a>
         <a href="https://t.me/SlamMirrorUpdates"><i class="fab fa-telegram"></i></a>
       </div>
     </header>
@@ -541,7 +541,7 @@ section span{
           <input
             type="text"
             name="pin_code"
-            placeholder="Enter the code that you have got from telegram to access the torrent"
+            placeholder="Enter the code that you have got from Telegram to access the Torrent"
           />
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
@@ -562,7 +562,7 @@ async def list_torrent_contents(request):
 
     gets = request.query
 
-    if not "pin_code" in gets.keys():
+    if "pin_code" not in gets.keys():
         rend_page = code_page.replace("{form_url}", f"/slam/files/{torr}")
         return web.Response(text=rend_page, content_type='text/html')
 
@@ -617,38 +617,33 @@ async def re_verfiy(paused, resumed, client, torr):
             if str(i.id) in paused:
                 if i.priority == 0:
                     continue
-                else:
-                    verify = False
-                    break
+                verify = False
+                break
 
-            if str(i.id) in resumed:
-                if i.priority != 0:
-                    continue
-                else:
-                    verify = False
-                    break
+            if str(i.id) in resumed and i.priority == 0:
+                verify = False
+                break
 
-        if not verify:
-            LOGGER.error("Reverification Failed, correcting stuff...")
-            client.auth_log_out()
-            client = qba.Client(host="localhost", port="8090",
-                               username="admin", password="adminadmin")
-            client.auth_log_in()
-            try:
-                client.torrents_file_priority(
-                    torrent_hash=torr, file_ids=paused, priority=0)
-            except:
-                LOGGER.error("Errored in reverification paused")
-            try:
-                client.torrents_file_priority(
-                    torrent_hash=torr, file_ids=resumed, priority=1)
-            except:
-                LOGGER.error("Errored in reverification resumed")
-            client.auth_log_out()
-        else:
+        if verify:
             break
+        LOGGER.error("Reverification Failed, correcting stuff...")
+        client.auth_log_out()
+        client = qba.Client(host="localhost", port="8090",
+                           username="admin", password="adminadmin")
+        client.auth_log_in()
+        try:
+            client.torrents_file_priority(
+                torrent_hash=torr, file_ids=paused, priority=0)
+        except:
+            LOGGER.error("Errored in reverification paused")
+        try:
+            client.torrents_file_priority(
+                torrent_hash=torr, file_ids=resumed, priority=1)
+        except:
+            LOGGER.error("Errored in reverification resumed")
+        client.auth_log_out()
         k += 1
-        if k >= 4:
+        if k > 4:
             return False
     return True
 
@@ -666,11 +661,11 @@ async def set_priority(request):
     pause = ""
     data = dict(data)
 
-    for i in data.keys():
+    for i, value in data.items():
         if i.find("filenode") != -1:
             node_no = i.split("_")[-1]
 
-            if data[i] == "on":
+            if value == "on":
                 resume += f"{node_no}|"
             else:
                 pause += f"{node_no}|"
@@ -696,7 +691,7 @@ async def set_priority(request):
 
     await asyncio.sleep(2)
     if not await re_verfiy(pause, resume, client, torr):
-        LOGGER.error("The torrent choose errored reverification failed")
+        LOGGER.error("The Torrent choose errored reverification failed")
     client.auth_log_out()
     return await list_torrent_contents(request)
 
@@ -704,7 +699,7 @@ async def set_priority(request):
 @routes.get('/')
 async def homepage(request):
 
-    return web.Response(text="<h1>See slam-mirrorbot <a href='https://github.com/Slam-Team/slam-mirrorbot'>@GitHub</a> By <a href='https://github.com/Slam-Team'>Slam-Team</a></h1>", content_type="text/html")
+    return web.Response(text="<h1>See slam-mirrorbot <a href='https://github.com/SlamDevs/slam-mirrorbot'>@GitHub</a> By <a href='https://github.com/SlamDevs'>SlamDevs</a></h1>", content_type="text/html")
 
 
 async def e404_middleware(app, handler):
